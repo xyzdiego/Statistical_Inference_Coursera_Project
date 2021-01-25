@@ -1,0 +1,129 @@
+---
+title: "Statistical Inference Project. Part 1"
+author: "Diego Andres Benitez"
+date: "24/1/2021"
+output:
+    pdf_document:
+        toc: true
+        number_section: true
+        highlight: haddock
+        fig_height: 4
+linkcolor: blue
+---
+
+# **Overview**
+
+This is the first part of the Statistical Inference Course Project from Coursera. It is demonstrated that the distribution proves the Central Limit Theorem. This assignment will make calculation and plots and compare confidence intervals, and eventually proves that the distribution is approximately normal.
+
+# **Tasks**
+
+In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.
+
+Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponentials. You should 
+
+ 1. Show the sample mean and compare it to the theoretical mean of the distribution.
+ 2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+ 3. Show that the distribution is approximately normal.
+
+In point 3, focus on the difference between the distribution of a large collection of random exponentials and the distribution of a large collection of averages of 40 exponentials.
+
+# **Analysis**
+
+## **Simulations**
+
+The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also also 1/lambda. Set lambda = 0.2 for all of the simulations. In this simulation, you will investigate the distribution of averages of 40 exponential(0.2)s. Note that you will need to do a thousand or so simulated averages of 40 exponentials.
+
+```{r Simulations, echo=FALSE}
+set.seed(9218)      # set seed for reproducability
+lambda <- 0.2       # set lambda to 0.2
+n <- 40             # 40 samples
+simulations <- 1000 # 1000 simulations
+
+# simulate and calculate mean of exponentials
+simulated_exponentials <- replicate(simulations, rexp(n, lambda))
+means_exponentials <- apply(simulated_exponentials, 2, mean)    
+```
+
+## **Mean comparison**
+
+Show where the distribution is centered at and compare it to the theoretical center of the distribution.
+
+```{r mean, echo=FALSE}
+# analytical mean
+analytical_mean <- mean(means_exponentials)
+
+# theorical mean
+theory_mean <- 1/lambda
+
+means <- data.frame(round(analytical_mean, 2), theory_mean)
+names(means) <- c("analytical mean", "theorical mean")
+knitr::kable(means, position = "center")
+```
+
+```{r hist, echo=FALSE}
+# visualization
+hist(means_exponentials, xlab = "mean", 
+     main = "Exponential Function Simulations",
+     breaks = "sturges", col = "lemonchiffon", angle = 75)
+abline(v = analytical_mean, col = "red", lwd = 3, lty = 2)
+abline(v = theory_mean, col = "orange", lwd = 3)
+```
+
+The analytics mean is `r round(analytical_mean, 2)` and the theoretical mean is `r theory_mean`. The center of distribution of averages of 40 exponentials is very close to the theoretical center of the distribution.
+
+## **Variance comparison**
+
+Show how variable it is and compare it to the theoretical variance of the distribution.
+
+```{r variance, echo=FALSE}
+variances <- data.frame(Variance = c(round(var(means_exponentials),2),
+                                     ((1/lambda^2)/(n))), 
+                        Deviation = c(round(sd(means_exponentials), 2),
+                                      round(1/(lambda*sqrt(n)), 2)))
+row.names(variances) <- c("Analytical", "Theorical")
+knitr::kable(variances)
+```
+
+Standard Deviation of the distribution is `r round(sd(means_exponentials), 2)` with the theoretical SD calculated as `r round(1/(lambda*sqrt(n)), 2)`. The actual variance of the distribution is `r round(var(means_exponentials),2)` Both standard deviation values are very close to each other and the theoretical variance is calculated as
+$$Var=\frac{1}{\lambda^2n}=0.625$$
+
+## **Distribution**
+
+Show that the distribution is approximately normal.
+
+```{r graphic, echo=FALSE}
+library(ggplot2)
+data <- data.frame(means_exponentials)
+sample_sd <- sd(means_exponentials)
+theo_sd  <- 1/(lambda * sqrt(n))
+ggplot(data, aes(x =means_exponentials)) + 
+    geom_histogram(aes(y=..density..), colour="grey",
+                        fill = "gray88") + 
+    labs(title = "Distribution of means of 40 Samples", 
+         x = "Mean of 40 Samples", y = "Density",
+         caption = "Elaborated by Diego Benitez") + 
+    geom_vline(aes(xintercept = analytical_mean, 
+                   colour = "sample"), size = 1.5) + 
+    geom_vline(aes(xintercept = theory_mean, 
+                   colour = "theoretical"), 
+               size = 1.5, linetype="dashed") + 
+    stat_function(fun = dnorm, 
+                  args = list(mean = analytical_mean, 
+                              sd = sample_sd), 
+                  color = "gold1", size = 1.0) + 
+    stat_function(fun = dnorm, args = list(mean = theory_mean, 
+                                           sd = theo_sd), 
+                  colour = "red", size = 1.0) +
+    theme_bw() + 
+    theme(plot.title = element_text(hjust = 0.5, color = "black", 
+                                    size =  15, face = "bold"),
+          plot.caption = element_text(hjust = 1, face = "italic", 
+                                      color = "gray70", size = 7))
+```
+
+The density of the actual data is shown by the light blue bars. The theoretical mean and the sample mean are so close that they nearly overlap. The “red” line shows the normal curve formed by the the theoretical mean and standard deviation. The “gold” line shows the curve formed by the sample mean and standard deviation. As you can see from the graph, the distribution of means of 40 exponential distributions is close to the normal distribution with the expected theoretical values based on the given lambda. Due to Due to the central limit theorem (CLT), the distribution of averages of 40 exponentials is very close to a normal distribution.
+
+# **Appendix**
+
+The Rmd code, generated by `knitr`, are available clicking [here](https://github.com/mGalarnyk/datasciencecoursera/tree/master/6_%20Statistical_Inference).
+

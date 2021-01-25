@@ -1,0 +1,127 @@
+---
+title: "Statistical Inference Project. Part 2"
+author: "Diego Andres Benitez"
+date: "24/1/2021"
+output:
+    pdf_document:
+        toc: true
+        number_section: true
+        highlight: haddock
+        fig_height: 3.2
+linkcolor: blue
+---
+
+# **Overview**
+
+This is the second part of the Statistical Inference Course Project from Coursera. In this part, a sample dataset about Tooth Growth is being investigated with exploratory data analysis. The ToolthGrowth dataset contains observation for the effect of vitamin C on tooth growth in Guinea Pigs, which corresponds to the response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).
+
+# **Tasks**
+
+Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.
+
+ 1. Load the ToothGrowth data and perform some basic exploratory data analyses
+ 2. Provide a basic summary of the data.
+ 3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering).
+ 4. State your conclusions and the assumptions needed for your conclusions.
+ 
+# **Analysis**
+
+## **Summary of the data**
+
+Let’s load the data and we can peek at the top rows of the data, examine the structure of the datase and provide a quick summary.
+
+```{r load, echo=FALSE}
+library(datasets)
+library(ggplot2)
+data(ToothGrowth)
+```
+
+
+```{r Summary, echo=TRUE}
+str(ToothGrowth)
+summary(ToothGrowth)
+```
+
+From the summary, we know that 30 observations are related to orange juice (supp = “OJ”), and other 30 are with ascorbic acid (supp = “VC”). Since the dose levels are fixed at 0.5, or 1, or 2 mg level, the median and mean or even quantile values do not carry much meaning in our analysis, we should focus on the length observation in the dataset, which the summary shows the values are between 4.20 and 33.90 with mean value at 28.81 and median at 19.25.
+
+## **Exploratory data analysis**
+
+Graphically, we can also use boxplot to provide a quick visual on the impact of dosage and supplement on the tooth growth, see below:
+
+```{r boxplot, echo=FALSE}
+ggplot(ToothGrowth, aes(dose, len)) + 
+    geom_boxplot(aes(fill = factor(dose))) + 
+    geom_point() +
+    labs(title = "Tooth Growth by \nSupplement & Dosage",
+         x = "Dose Amount",
+         y = "Tooth Length",
+         caption = "Elaborated by Diego Benitez") + 
+    facet_grid(~ supp) + 
+    theme_bw() +  
+    theme(plot.title = element_text(hjust = 0.5, color = "black", 
+                                    size =  15, face = "bold", 
+                                    lineheight=.8),
+          plot.caption = element_text(hjust = 1, face = "italic", 
+                                      color = "gray70", size = 7))
+
+ggplot(ToothGrowth, aes(supp, len)) + 
+    geom_boxplot(aes(fill=supp)) + 
+    geom_point() + 
+    labs(title = "Tooth Growth by \nSupplement Delivery",
+         x = "Supplement Delivery",
+         y = "Tooth Length",
+         caption = "Elaborated by Diego Benitez") + 
+    facet_grid(~ dose) + 
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5, color = "black", 
+                                    size =  15, face = "bold", 
+                                    lineheight=.8),
+          plot.caption = element_text(hjust = 1, face = "italic", 
+                                      color = "gray70", size = 7))
+```
+
+Based on the above chart, it appears that when the dosage is high at 2 mg, the mean value of tooth growth appears to be similar between OJ and VC, however, when the dosage is 0.5 mg or 1 mg, the chart definitely shows that OJ has a obvious positive impact on tooth growth compared to VC.
+
+## **Hypothesis Testing**
+
+Let’s look at the below two hypothesis:
+
+ * $H_0:$ "Orange juice does not have an impact on tooth growth compared to ascorbic acid"
+ * $H_1:$ "Orange juice has an impact on tooth growth compared to ascorbic acid.
+
+```{r}
+t.test(len~supp,data=ToothGrowth)
+```
+The p-value of this test was `r t.test(len~supp,data=ToothGrowth)$p.value`. Since the p-value is greater than 0.05 and the confidence interval of the test contains zero we can say that supplement types seems to have no impact on Tooth growth based on this test.
+
+Now we’ll compare tooth growth by dose, looking at the different pairs of dose values.
+
+```{r}
+ToothGrowth_sub <- subset(ToothGrowth, ToothGrowth$dose %in% c(1.0,0.5))
+t.test(len~dose,data=ToothGrowth_sub)
+```
+
+```{r}
+ToothGrowth_sub <- subset(ToothGrowth, ToothGrowth$dose %in% c(0.5,2.0))
+t.test(len~dose,data=ToothGrowth_sub)
+```
+
+```{r}
+ToothGrowth_sub <- subset(ToothGrowth, ToothGrowth$dose %in% c(1.0,2.0))
+t.test(len~dose,data=ToothGrowth_sub)
+```
+
+As can be seen, the p-value of each test was essentially zero and the confidence interval of each test does not cross over zero (0). Based on this result we can assume that the average tooth length increases with an inceasing dose, and therefore the null hypothesis can be rejected.
+
+# **Conclusions**
+
+Given the following assumptions:
+
+ 1. The sample is representative of the population
+ 2. The distribution of the sample means follows the Central Limit Theorem
+
+In reviewing our t-test analysis from above, we can conclude that supplement delivery method has no effect on tooth growth/length, however increased dosages do result in increased tooth length.
+
+# **Appendix**
+
+The Rmd code, generated by `knitr`, are available clicking [here](https://github.com/mGalarnyk/datasciencecoursera/tree/master/6_%20Statistical_Inference).
